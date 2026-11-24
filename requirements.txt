@@ -1,0 +1,10 @@
+yfinance
+pandas
+numpy
+matplotlib
+plotly
+scikit-learn
+streamlit
+sqlalchemy
+pyodbc
+python-dotenv
