@@ -88,55 +88,183 @@ data/processed/NVDA_5y_1d_processed.csv
 
 ## Planned Features
 
-### Phase 3: Financial Comparison
+## Phase 3: Financial Comparison and Risk Metrics
 
-The platform will compare stocks using metrics such as:
+Phase 3 extends the project from simple stock data retrieval into comparative financial analytics. The purpose of this phase is to evaluate the historical performance and risk characteristics of the tracked stocks and benchmark using structured metrics rather than relying only on price charts.
+
+### Objective
+
+The objective of Phase 3 is to compare the Magnificent Seven stocks and the S&P 500 using key performance and risk indicators. This allows the project to answer practical analytics questions such as:
+
+- Which stock delivered the strongest historical return?
+- Which stock experienced the highest volatility?
+- Did higher return come with higher risk?
+- How did each stock compare against the S&P 500 benchmark?
+- Which stocks experienced the most severe drawdowns?
+
+### Input Data
+
+Phase 3 uses the processed datasets generated in Phase 2. These files are stored in:
+data/processed/
+
+Each processed dataset contains cleaned historical stock data and derived metrics such as:
+
+- Daily_Return
+- Cumulative_Return
+- MA_20
+- MA_50
+- MA_200
+- Volatility_20D
+- Drawdown
+- Implementation
+- A new comparison module was created in:
 
 
-Metric	Purpose
-Total Return	Measures full-period percentage gain or loss
-Annualised Return	Converts total return into yearly performance
-Annualised Volatility	Measures yearly return fluctuation
-Sharpe Ratio	Measures risk-adjusted return
-Maximum Drawdown	Measures worst peak-to-trough decline
-Best Day	Highest daily return
-Worst Day	Lowest daily return
-Positive Days %	Percentage of trading days with positive return
-This phase will help answer questions such as:
+### src/comparison.py
+This module performs the following tasks:
 
-Which Magnificent Seven stock performed best historically?
-Which stock was most volatile?
-Did higher returns come with higher risk?
-How did each stock compare against the S&P 500?
+- Loads all processed stock CSV files from data/processed/
+- Calculates summary performance and risk metrics for each ticker
+- Combines the results into one comparison table
+- Saves the final summary table as a CSV file
+- A runner script was created in:
+
+### run_phase3.py
+This script executes the full comparison workflow and prints the summary table in the terminal.
+
+Metrics Calculated
+The following metrics are calculated for each stock or index:
+
+
+Metric	Description
+Total Return (%)	Overall percentage gain or loss over the full dataset period
+Annualised Return (%)	Average yearly growth rate based on the full historical period
+Annualised Volatility (%)	Standard deviation of daily returns scaled to an annual basis
+Sharpe Ratio	Risk-adjusted return using annualised return divided by annualised volatility
+Maximum Drawdown (%)	Largest decline from a historical peak
+Best Day (%)	Highest single-day return
+Worst Day (%)	Lowest single-day return
+Positive Days (%)	Percentage of trading days with positive returns
+Observations	Number of valid trading-day observations used in the analysis
+Business Analytics Value
+This phase is important because it transforms the project into a more meaningful comparative analysis tool. Instead of asking only how prices changed, the project can now evaluate return, risk and consistency across different stocks.
+
+This supports Business Analytics concepts such as:
+
+historical performance evaluation
+risk measurement
+comparative analysis
+benchmark-based analysis
+interpretation of trade-offs between return and volatility
+Output
+The main output of Phase 3 is a stock comparison summary file:
+
+
+### data/processed/stock_comparison_summary.csv
+This file can later be used in the Streamlit dashboard to display ranking tables, comparison charts and risk summaries.
+
+Key Learning Outcome
+By completing Phase 3, the project demonstrates the ability to move from raw data collection to structured financial analysis. It also creates a reusable analytics layer that supports later phases such as machine learning, portfolio analytics and interactive dashboard reporting.
+
+
+
 
 ### Phase 4: Machine Learning and Advanced Analytics
 The platform will include machine learning models to estimate future stock returns or prices.
 
-Planned models include:
+Phase 4 introduces predictive analytics into the project. The purpose of this phase is to test whether historical stock features can be used to estimate next-day stock returns and to evaluate whether the resulting models are meaningfully better than a simple baseline.
 
-Linear Regression
-Random Forest Regressor
-Gradient Boosting Regressor
-Spline Regression
-Spline regression may be used for:
+### Objective
 
-Nonlinear trend smoothing
-Modelling historical price trends
-Analysing nonlinear relationships between indicators and future returns
-Comparing against simpler models
-Evaluation metrics may include:
+The objective of Phase 4 is to build and evaluate machine learning models that predict the next trading day’s stock return. This phase is designed as an experiment in predictive modelling rather than as a trading system.
 
-Mean Absolute Error, MAE
-Root Mean Squared Error, RMSE
-R² score
-Directional accuracy
-Baseline comparison
-Important modelling principles:
+The key questions addressed include:
 
-Use chronological train/test splits.
-Avoid random shuffling of time-series data.
-Avoid look-ahead bias.
-Compare model performance against simple baselines.
+Can historical stock indicators help estimate future returns?
+Are machine learning models more useful than a baseline assumption of zero return?
+Which model performs better across different stocks?
+Are some stocks more predictable than others?
+Is prediction accuracy strong enough to be practically meaningful?
+Prediction Target
+Instead of predicting raw future prices, the project predicts the next-day return:
+
+
+Target = Tomorrow's Close / Today's Close - 1
+This approach is used because returns are more consistent and comparable across stocks than raw prices.
+
+Input Data
+Phase 4 uses the processed stock files from:
+
+
+data/processed/
+These processed files already contain the cleaned price history and technical indicators calculated in Phase 2.
+
+### Implementation
+A prediction module was created in:
+
+src/prediction.py
+This module performs the following tasks:
+
+Loads a processed stock file
+Creates predictive features from historical stock data
+Creates the next-day return target variable
+Splits the dataset chronologically into training and testing sets
+Trains machine learning models
+Evaluates model performance using multiple metrics
+Saves model outputs for each ticker
+Two runner scripts were used during development:
+
+
+run_phase4.py
+run_phase4_all.py
+The first script was used to test the pipeline on a single stock, while the upgraded version processes all tracked stocks and the S&P 500 benchmark.
+
+### Features Engineered
+The following features were created for the prediction models:
+
+Feature	Description
+Return_1D	Percentage return over the last 1 trading day
+Return_5D	Percentage return over the last 5 trading days
+Return_10D	Percentage return over the last 10 trading days
+MA_Ratio	Ratio of closing price to the 20-day moving average
+Volatility_20D	20-day rolling annualised volatility
+These features were chosen to capture recent momentum, mean reversion and short-term market risk.
+
+### Modelling Approach
+The following models were implemented:
+
+Model	Purpose
+Baseline Zero Return	Predicts zero return for every test observation
+Linear Regression	Provides a simple linear benchmark
+Random Forest Regressor	Captures more complex nonlinear relationships
+The baseline model is especially important because it provides a simple reference point. If a machine learning model cannot outperform a zero-return baseline, then its practical usefulness is questionable.
+
+### Time-Series Validation
+A chronological train/test split was used instead of random shuffling.
+
+This is necessary because stock data is time-series data. Random shuffling would allow future information to leak into the training process, leading to unrealistic results. By training on earlier observations and testing on later observations, the project follows a more valid financial forecasting approach.
+
+### Evaluation Metrics
+The following metrics were used to evaluate model performance:
+
+Metric	Description
+MAE	Mean Absolute Error
+RMSE	Root Mean Squared Error
+R²	Proportion of variation explained by the model
+Directional Accuracy	Percentage of test cases where the model predicted the correct direction of return
+These metrics allow the project to evaluate both numerical prediction error and directional usefulness.
+
+### Upgraded Phase 4 Workflow
+Phase 4 was later upgraded so that the full pipeline could be run across all tracked stocks, rather than only one stock.
+
+The upgraded pipeline now:
+
+Reads all processed stock files from data/processed/
+Runs the prediction workflow for each ticker
+Saves engineered features for each ticker
+Saves model results for each ticker
+Saves actual vs predicted test-period returns for each ticker
+Creates one combined model comparison file across all tickers
 
 ### Phase 5: SQL Server Integration
 The platform will eventually store data in SQL Server.
